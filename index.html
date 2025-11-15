@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tafeltennis Toernooi</title>
+    <title>Tafeltennis Toernooi - Poules & Knock-out</title>
     <style>
         * {
             margin: 0;
@@ -201,11 +201,16 @@
             color: #155724;
         }
 
-        .rounds {
-            margin-top: 20px;
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #0c5460;
         }
 
-        .round {
+        .pool-container {
             background: white;
             padding: 20px;
             margin-bottom: 20px;
@@ -213,12 +218,24 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .round h3 {
+        .pool-header {
             color: #667eea;
             margin-bottom: 15px;
-            font-size: 1.3em;
+            font-size: 1.5em;
             padding-bottom: 10px;
             border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pool-badge {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: bold;
         }
 
         .match {
@@ -269,14 +286,16 @@
         .standings-table th {
             background: #667eea;
             color: white;
-            padding: 15px;
+            padding: 12px;
             text-align: left;
             font-weight: 600;
+            font-size: 0.9em;
         }
 
         .standings-table td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9em;
         }
 
         .standings-table tr:hover {
@@ -290,7 +309,7 @@
         .rank {
             font-weight: bold;
             color: #667eea;
-            font-size: 1.2em;
+            font-size: 1.1em;
         }
 
         .rank-1 {
@@ -301,8 +320,8 @@
             color: #c0c0c0;
         }
 
-        .rank-3 {
-            color: #cd7f32;
+        .qualified {
+            background: #d4edda !important;
         }
 
         .button-group {
@@ -311,9 +330,61 @@
             flex-wrap: wrap;
         }
 
-        .bye-match {
-            opacity: 0.6;
+        .knockout-round {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .knockout-round h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .knockout-match {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            flex-wrap: wrap;
+        }
+
+        .knockout-match.winner-decided {
+            background: #e8f5e9;
+            border-left: 4px solid #28a745;
+        }
+
+        .match-number {
+            font-weight: bold;
+            color: #667eea;
+            min-width: 60px;
+        }
+
+        .tbd {
+            color: #999;
             font-style: italic;
+        }
+
+        .winner-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+
+        .trophy {
+            font-size: 2em;
+            margin-right: 10px;
         }
 
         @media (max-width: 768px) {
@@ -347,26 +418,42 @@
             }
 
             .standings-table {
-                font-size: 0.9em;
+                font-size: 0.85em;
             }
 
             .standings-table th,
             .standings-table td {
-                padding: 8px;
+                padding: 8px 6px;
             }
 
             .player-list {
                 grid-template-columns: 1fr;
             }
-        }
 
-        .hidden {
-            display: none;
+            .pool-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
         }
 
         .stats-highlight {
             font-weight: bold;
             color: #667eea;
+        }
+
+        .config-section {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .config-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -374,7 +461,7 @@
     <div class="container">
         <header>
             <h1>🏓 Tafeltennis Toernooi</h1>
-            <p>Organiseer je eigen round-robin toernooi</p>
+            <p>Poules + Knock-out systeem</p>
         </header>
 
         <div class="content">
@@ -388,9 +475,21 @@
                     </div>
                     <div id="playerMessage"></div>
                     <ul class="player-list" id="playerList"></ul>
+
+                    <div class="config-section" id="tournamentConfig">
+                        <label class="config-label">
+                            Spelers per poule:
+                            <input type="number" id="playersPerPool" min="3" max="6" value="4"
+                                   style="width: 80px; margin-left: 10px;" />
+                        </label>
+                        <div class="info" style="margin-top: 10px; font-size: 0.9em;">
+                            💡 Aanbevolen: 3-4 spelers per poule. Top 2 van elke poule gaat door naar knock-out fase.
+                        </div>
+                    </div>
+
                     <div class="button-group" style="margin-top: 20px;">
                         <button class="success" onclick="generateTournament()" id="generateBtn">
-                            Genereer Speelschema
+                            Genereer Toernooi
                         </button>
                         <button class="danger" onclick="resetTournament()">
                             Toernooi Resetten
@@ -399,17 +498,18 @@
                 </div>
             </div>
 
-            <!-- Speelschema Section -->
-            <div class="section" id="scheduleSection">
-                <h2>Speelschema</h2>
-                <div id="scheduleMessage"></div>
-                <div id="roundsContainer" class="rounds"></div>
+            <!-- Poulefase Section -->
+            <div class="section" id="poolSection">
+                <h2>Poulefase</h2>
+                <div id="poolMessage"></div>
+                <div id="poolsContainer"></div>
             </div>
 
-            <!-- Ranglijst Section -->
-            <div class="section" id="standingsSection">
-                <h2>Ranglijst</h2>
-                <div id="standingsContainer"></div>
+            <!-- Knock-out Section -->
+            <div class="section" id="knockoutSection">
+                <h2>Knock-out Fase</h2>
+                <div id="knockoutMessage"></div>
+                <div id="knockoutContainer"></div>
             </div>
         </div>
     </div>
@@ -417,16 +517,18 @@
     <script>
         // ==================== DATA MODEL ====================
         let players = [];
-        let matches = [];
+        let pools = [];
+        let knockoutRounds = [];
         let tournamentStarted = false;
+        let knockoutStarted = false;
         let nextPlayerId = 1;
 
         // ==================== INITIALIZATION ====================
         function init() {
             loadFromLocalStorage();
             renderPlayers();
-            renderSchedule();
-            renderStandings();
+            renderPools();
+            renderKnockout();
             updateUI();
         }
 
@@ -492,34 +594,69 @@
 
         // ==================== TOURNAMENT GENERATION ====================
         function generateTournament() {
-            const messageDiv = document.getElementById('scheduleMessage');
+            const messageDiv = document.getElementById('poolMessage');
+            const playersPerPool = parseInt(document.getElementById('playersPerPool').value);
 
-            if (players.length < 2) {
-                showMessage(messageDiv, 'Je hebt minimaal 2 spelers nodig om te starten.', 'error');
+            if (players.length < 6) {
+                showMessage(messageDiv, 'Je hebt minimaal 6 spelers nodig voor een poule-toernooi.', 'error');
                 return;
             }
 
-            if (players.length > 32) {
-                if (!confirm(`Je hebt ${players.length} spelers. Dit betekent ${players.length * (players.length - 1) / 2} wedstrijden. Weet je het zeker?`)) {
-                    return;
-                }
+            if (playersPerPool < 3 || playersPerPool > 6) {
+                showMessage(messageDiv, 'Kies tussen 3 en 6 spelers per poule.', 'error');
+                return;
             }
 
-            matches = generateRoundRobinMatches(players);
+            // Generate pools and matches
+            generatePoolsAndMatches(playersPerPool);
+
+            // Generate knockout structure (empty for now)
+            generateKnockoutStructure();
+
             tournamentStarted = true;
 
-            showMessage(messageDiv, 'Speelschema gegenereerd! Je kunt nu scores invoeren.', 'success');
-            renderSchedule();
-            renderStandings();
+            showMessage(messageDiv, 'Toernooi gegenereerd! Speel de poulefase.', 'success');
+            renderPlayers();
+            renderPools();
+            renderKnockout();
             updateUI();
             saveToLocalStorage();
         }
 
-        function generateRoundRobinMatches(playerList) {
-            const matchList = [];
-            let participants = [...playerList];
+        // ==================== POOL GENERATION ====================
+        function generatePoolsAndMatches(playersPerPool) {
+            // Shuffle players randomly
+            const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
 
-            // Add dummy player if odd number of players
+            // Calculate number of pools
+            const numPools = Math.ceil(shuffledPlayers.length / playersPerPool);
+
+            pools = [];
+            const poolLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+            // Distribute players across pools
+            for (let i = 0; i < numPools; i++) {
+                const poolPlayers = shuffledPlayers.slice(
+                    i * playersPerPool,
+                    Math.min((i + 1) * playersPerPool, shuffledPlayers.length)
+                );
+
+                const pool = {
+                    id: poolLabels[i],
+                    playerIds: poolPlayers.map(p => p.id),
+                    matches: generateRoundRobinForPool(poolPlayers)
+                };
+
+                pools.push(pool);
+            }
+        }
+
+        function generateRoundRobinForPool(poolPlayers) {
+            // Reuse the round-robin algorithm from original code
+            const matchList = [];
+            let participants = [...poolPlayers];
+
+            // Add dummy player if odd number
             const hasBye = participants.length % 2 !== 0;
             if (hasBye) {
                 participants.push({ id: -1, name: 'BYE' });
@@ -529,13 +666,11 @@
             const rounds = n - 1;
             const matchesPerRound = n / 2;
 
-            // Round-robin rotation algorithm
             for (let round = 0; round < rounds; round++) {
                 for (let match = 0; match < matchesPerRound; match++) {
                     let home = (round + match) % (n - 1);
                     let away = (n - 1 - match + round) % (n - 1);
 
-                    // Last player stays in place
                     if (match === 0) {
                         away = n - 1;
                     }
@@ -543,10 +678,8 @@
                     const player1 = participants[home];
                     const player2 = participants[away];
 
-                    // Skip matches with BYE player
                     if (player1.id !== -1 && player2.id !== -1) {
                         matchList.push({
-                            round: round + 1,
                             player1Id: player1.id,
                             player2Id: player2.id,
                             score1: null,
@@ -559,106 +692,24 @@
             return matchList;
         }
 
-        // ==================== SCHEDULE RENDERING ====================
-        function renderSchedule() {
-            const container = document.getElementById('roundsContainer');
-
-            if (!tournamentStarted || matches.length === 0) {
-                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Genereer eerst een speelschema</p>';
-                return;
-            }
-
-            const rounds = groupMatchesByRound(matches);
-            container.innerHTML = '';
-
-            rounds.forEach((roundMatches, roundNum) => {
-                const roundDiv = document.createElement('div');
-                roundDiv.className = 'round';
-
-                let roundHTML = `<h3>Ronde ${roundNum}</h3>`;
-
-                roundMatches.forEach((match, idx) => {
-                    const player1 = players.find(p => p.id === match.player1Id);
-                    const player2 = players.find(p => p.id === match.player2Id);
-
-                    const matchId = matches.indexOf(match);
-
-                    roundHTML += `
-                        <div class="match">
-                            <div class="match-players">
-                                ${escapeHtml(player1.name)} <span class="vs">vs</span> ${escapeHtml(player2.name)}
-                            </div>
-                            <div class="match-score">
-                                <input type="number"
-                                       min="0"
-                                       value="${match.score1 !== null ? match.score1 : ''}"
-                                       placeholder="0"
-                                       onchange="updateScore(${matchId}, 1, this.value)" />
-                                <span>-</span>
-                                <input type="number"
-                                       min="0"
-                                       value="${match.score2 !== null ? match.score2 : ''}"
-                                       placeholder="0"
-                                       onchange="updateScore(${matchId}, 2, this.value)" />
-                            </div>
-                        </div>
-                    `;
-                });
-
-                roundDiv.innerHTML = roundHTML;
-                container.appendChild(roundDiv);
-            });
-        }
-
-        function groupMatchesByRound(matchList) {
-            const rounds = new Map();
-
-            matchList.forEach(match => {
-                if (!rounds.has(match.round)) {
-                    rounds.set(match.round, []);
-                }
-                rounds.get(match.round).push(match);
+        // ==================== POOL STANDINGS ====================
+        function calculatePoolStandings(pool) {
+            const standings = pool.playerIds.map(playerId => {
+                const player = players.find(p => p.id === playerId);
+                return {
+                    id: playerId,
+                    name: player.name,
+                    played: 0,
+                    won: 0,
+                    lost: 0,
+                    drawn: 0,
+                    pointsFor: 0,
+                    pointsAgainst: 0,
+                    pointsDiff: 0
+                };
             });
 
-            return rounds;
-        }
-
-        // ==================== SCORE MANAGEMENT ====================
-        function updateScore(matchIndex, player, value) {
-            const scoreValue = value.trim() === '' ? null : parseInt(value);
-
-            if (scoreValue !== null && (scoreValue < 0 || isNaN(scoreValue))) {
-                alert('Score moet een positief getal zijn.');
-                renderSchedule();
-                return;
-            }
-
-            if (player === 1) {
-                matches[matchIndex].score1 = scoreValue;
-            } else {
-                matches[matchIndex].score2 = scoreValue;
-            }
-
-            renderStandings();
-            saveToLocalStorage();
-        }
-
-        // ==================== STANDINGS CALCULATION ====================
-        function calculateStandings() {
-            const standings = players.map(player => ({
-                id: player.id,
-                name: player.name,
-                played: 0,
-                won: 0,
-                lost: 0,
-                drawn: 0,
-                pointsFor: 0,
-                pointsAgainst: 0,
-                pointsDiff: 0
-            }));
-
-            matches.forEach(match => {
-                // Only count matches with complete scores
+            pool.matches.forEach(match => {
                 if (match.score1 !== null && match.score2 !== null) {
                     const player1Stats = standings.find(s => s.id === match.player1Id);
                     const player2Stats = standings.find(s => s.id === match.player2Id);
@@ -685,12 +736,11 @@
                 }
             });
 
-            // Calculate point difference
             standings.forEach(s => {
                 s.pointsDiff = s.pointsFor - s.pointsAgainst;
             });
 
-            // Sort: won (desc), pointsDiff (desc), name (asc)
+            // Sort: won desc, pointsDiff desc, name asc
             standings.sort((a, b) => {
                 if (b.won !== a.won) return b.won - a.won;
                 if (b.pointsDiff !== a.pointsDiff) return b.pointsDiff - a.pointsDiff;
@@ -700,70 +750,367 @@
             return standings;
         }
 
-        function renderStandings() {
-            const container = document.getElementById('standingsContainer');
+        // ==================== POOL RENDERING ====================
+        function renderPools() {
+            const container = document.getElementById('poolsContainer');
 
-            if (!tournamentStarted || matches.length === 0) {
-                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Ranglijst wordt zichtbaar na het genereren van het speelschema</p>';
+            if (!tournamentStarted || pools.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Genereer eerst een toernooi</p>';
                 return;
             }
 
-            const standings = calculateStandings();
+            container.innerHTML = '';
 
-            let html = `
-                <table class="standings-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Naam</th>
-                            <th>Gespeeld</th>
-                            <th>Gewonnen</th>
-                            <th>Verloren</th>
-                            <th>Gelijk</th>
-                            <th>Voor</th>
-                            <th>Tegen</th>
-                            <th>Saldo</th>
+            pools.forEach(pool => {
+                const poolDiv = document.createElement('div');
+                poolDiv.className = 'pool-container';
+
+                const standings = calculatePoolStandings(pool);
+                const allMatchesPlayed = pool.matches.every(m => m.score1 !== null && m.score2 !== null);
+
+                let html = `
+                    <div class="pool-header">
+                        <span>Poule ${pool.id}</span>
+                        ${allMatchesPlayed ? '<span class="pool-badge">Compleet ✓</span>' : '<span class="pool-badge" style="background: #ffc107;">In uitvoering</span>'}
+                    </div>
+                `;
+
+                // Matches
+                html += '<div style="margin-bottom: 20px;">';
+                html += '<h4 style="color: #333; margin-bottom: 10px;">Wedstrijden</h4>';
+                pool.matches.forEach((match, idx) => {
+                    const player1 = players.find(p => p.id === match.player1Id);
+                    const player2 = players.find(p => p.id === match.player2Id);
+                    const poolIndex = pools.indexOf(pool);
+                    const matchIndex = idx;
+
+                    html += `
+                        <div class="match">
+                            <div class="match-players">
+                                ${escapeHtml(player1.name)} <span class="vs">vs</span> ${escapeHtml(player2.name)}
+                            </div>
+                            <div class="match-score">
+                                <input type="number"
+                                       min="0"
+                                       value="${match.score1 !== null ? match.score1 : ''}"
+                                       placeholder="0"
+                                       onchange="updatePoolScore(${poolIndex}, ${matchIndex}, 1, this.value)" />
+                                <span>-</span>
+                                <input type="number"
+                                       min="0"
+                                       value="${match.score2 !== null ? match.score2 : ''}"
+                                       placeholder="0"
+                                       onchange="updatePoolScore(${poolIndex}, ${matchIndex}, 2, this.value)" />
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                // Standings
+                html += '<h4 style="color: #333; margin-bottom: 10px;">Stand</h4>';
+                html += `
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Naam</th>
+                                <th>Gesp.</th>
+                                <th>W</th>
+                                <th>V</th>
+                                <th>G</th>
+                                <th>+</th>
+                                <th>-</th>
+                                <th>Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                standings.forEach((player, index) => {
+                    const rank = index + 1;
+                    let rankClass = 'rank';
+                    if (rank === 1) rankClass += ' rank-1';
+                    else if (rank === 2) rankClass += ' rank-2';
+
+                    const rowClass = (rank <= 2 && allMatchesPlayed) ? 'qualified' : '';
+
+                    html += `
+                        <tr class="${rowClass}">
+                            <td class="${rankClass}">${rank}</td>
+                            <td><strong>${escapeHtml(player.name)}</strong></td>
+                            <td>${player.played}</td>
+                            <td class="stats-highlight">${player.won}</td>
+                            <td>${player.lost}</td>
+                            <td>${player.drawn}</td>
+                            <td>${player.pointsFor}</td>
+                            <td>${player.pointsAgainst}</td>
+                            <td class="stats-highlight">${player.pointsDiff >= 0 ? '+' : ''}${player.pointsDiff}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            standings.forEach((player, index) => {
-                const rank = index + 1;
-                let rankClass = 'rank';
-                if (rank === 1) rankClass += ' rank-1';
-                else if (rank === 2) rankClass += ' rank-2';
-                else if (rank === 3) rankClass += ' rank-3';
+                    `;
+                });
 
                 html += `
-                    <tr>
-                        <td class="${rankClass}">${rank}</td>
-                        <td><strong>${escapeHtml(player.name)}</strong></td>
-                        <td>${player.played}</td>
-                        <td class="stats-highlight">${player.won}</td>
-                        <td>${player.lost}</td>
-                        <td>${player.drawn}</td>
-                        <td>${player.pointsFor}</td>
-                        <td>${player.pointsAgainst}</td>
-                        <td class="stats-highlight">${player.pointsDiff >= 0 ? '+' : ''}${player.pointsDiff}</td>
-                    </tr>
+                        </tbody>
+                    </table>
                 `;
+
+                poolDiv.innerHTML = html;
+                container.appendChild(poolDiv);
             });
 
-            html += `
-                    </tbody>
-                </table>
-            `;
+            // Check if all pools are complete and fill knockout bracket
+            checkAndFillKnockout();
+        }
 
-            container.innerHTML = html;
+        // ==================== POOL SCORE UPDATE ====================
+        function updatePoolScore(poolIndex, matchIndex, player, value) {
+            const scoreValue = value.trim() === '' ? null : parseInt(value);
+
+            if (scoreValue !== null && (scoreValue < 0 || isNaN(scoreValue))) {
+                alert('Score moet een positief getal zijn.');
+                renderPools();
+                return;
+            }
+
+            if (player === 1) {
+                pools[poolIndex].matches[matchIndex].score1 = scoreValue;
+            } else {
+                pools[poolIndex].matches[matchIndex].score2 = scoreValue;
+            }
+
+            renderPools();
+            saveToLocalStorage();
+        }
+
+        // ==================== KNOCKOUT GENERATION ====================
+        function generateKnockoutStructure() {
+            // Calculate number of qualifiers (top 2 from each pool)
+            const numQualifiers = pools.length * 2;
+
+            // Determine number of rounds needed
+            const rounds = [];
+            let currentRound = numQualifiers;
+
+            // Build rounds from bottom up
+            const roundNames = {
+                2: 'Finale',
+                4: 'Halve Finale',
+                8: 'Kwartfinale',
+                16: '1/8 Finale'
+            };
+
+            while (currentRound >= 2) {
+                const roundName = roundNames[currentRound] || `Ronde van ${currentRound}`;
+                const numMatches = currentRound / 2;
+
+                rounds.unshift({
+                    name: roundName,
+                    matches: Array(numMatches).fill(null).map(() => ({
+                        player1Id: null,
+                        player2Id: null,
+                        score1: null,
+                        score2: null,
+                        winnerId: null
+                    }))
+                });
+
+                currentRound = currentRound / 2;
+            }
+
+            knockoutRounds = rounds;
+        }
+
+        function checkAndFillKnockout() {
+            // Check if all pools are complete
+            const allPoolsComplete = pools.every(pool =>
+                pool.matches.every(m => m.score1 !== null && m.score2 !== null)
+            );
+
+            if (allPoolsComplete && !knockoutStarted) {
+                fillKnockoutBracket();
+                knockoutStarted = true;
+                showMessage(document.getElementById('knockoutMessage'),
+                    'Alle poules compleet! Knock-out fase is gevuld met de top 2 van elke poule.', 'success');
+            }
+        }
+
+        function fillKnockoutBracket() {
+            // Get top 2 from each pool
+            const qualifiers = [];
+
+            pools.forEach(pool => {
+                const standings = calculatePoolStandings(pool);
+                qualifiers.push({
+                    playerId: standings[0].id,
+                    poolId: pool.id,
+                    rank: 1
+                });
+                if (standings.length >= 2) {
+                    qualifiers.push({
+                        playerId: standings[1].id,
+                        poolId: pool.id,
+                        rank: 2
+                    });
+                }
+            });
+
+            // Smart pairing: A1 vs B2, B1 vs A2, C1 vs D2, D1 vs C2, etc.
+            const firstRound = knockoutRounds[0];
+            const winners = qualifiers.filter(q => q.rank === 1);
+            const runnersUp = qualifiers.filter(q => q.rank === 2);
+
+            for (let i = 0; i < firstRound.matches.length; i++) {
+                // Pair winner from pool i with runner-up from next pool
+                const winner = winners[i % winners.length];
+                const runnerUp = runnersUp[(i + 1) % runnersUp.length];
+
+                if (winner && runnerUp) {
+                    firstRound.matches[i].player1Id = winner.playerId;
+                    firstRound.matches[i].player2Id = runnerUp.playerId;
+                }
+            }
+
+            renderKnockout();
+            saveToLocalStorage();
+        }
+
+        // ==================== KNOCKOUT RENDERING ====================
+        function renderKnockout() {
+            const container = document.getElementById('knockoutContainer');
+
+            if (!tournamentStarted || knockoutRounds.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Knock-out fase wordt zichtbaar na de poulefase</p>';
+                return;
+            }
+
+            if (!knockoutStarted) {
+                container.innerHTML = '<p class="info">⏳ Wacht tot alle poule-wedstrijden zijn gespeeld...</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            knockoutRounds.forEach((round, roundIndex) => {
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'knockout-round';
+
+                let html = `<h3>${round.name}</h3>`;
+
+                // Special rendering for final
+                const isFinal = round.name === 'Finale';
+
+                round.matches.forEach((match, matchIndex) => {
+                    const player1 = match.player1Id ? players.find(p => p.id === match.player1Id) : null;
+                    const player2 = match.player2Id ? players.find(p => p.id === match.player2Id) : null;
+
+                    const hasWinner = match.winnerId !== null;
+                    const winner = hasWinner ? players.find(p => p.id === match.winnerId) : null;
+
+                    html += `
+                        <div class="knockout-match ${hasWinner ? 'winner-decided' : ''}">
+                            ${!isFinal ? `<span class="match-number">Match ${matchIndex + 1}</span>` : '<span class="trophy">🏆</span>'}
+                            <div class="match-players">
+                                ${player1 ? escapeHtml(player1.name) : '<span class="tbd">TBD</span>'}
+                                <span class="vs">vs</span>
+                                ${player2 ? escapeHtml(player2.name) : '<span class="tbd">TBD</span>'}
+                            </div>
+                            ${player1 && player2 ? `
+                                <div class="match-score">
+                                    <input type="number"
+                                           min="0"
+                                           value="${match.score1 !== null ? match.score1 : ''}"
+                                           placeholder="0"
+                                           ${hasWinner ? 'disabled' : ''}
+                                           onchange="updateKnockoutScore(${roundIndex}, ${matchIndex}, 1, this.value)" />
+                                    <span>-</span>
+                                    <input type="number"
+                                           min="0"
+                                           value="${match.score2 !== null ? match.score2 : ''}"
+                                           placeholder="0"
+                                           ${hasWinner ? 'disabled' : ''}
+                                           onchange="updateKnockoutScore(${roundIndex}, ${matchIndex}, 2, this.value)" />
+                                </div>
+                            ` : ''}
+                            ${hasWinner ? `<span class="winner-badge">Winnaar: ${escapeHtml(winner.name)}</span>` : ''}
+                        </div>
+                    `;
+                });
+
+                roundDiv.innerHTML = html;
+                container.appendChild(roundDiv);
+            });
+
+            // Check for tournament winner
+            const finalRound = knockoutRounds[knockoutRounds.length - 1];
+            if (finalRound.matches[0].winnerId) {
+                const champion = players.find(p => p.id === finalRound.matches[0].winnerId);
+                container.innerHTML += `
+                    <div class="success-msg" style="text-align: center; font-size: 1.3em; padding: 20px;">
+                        🎉 <strong>KAMPIOEN: ${escapeHtml(champion.name)}</strong> 🎉
+                    </div>
+                `;
+            }
+        }
+
+        // ==================== KNOCKOUT SCORE UPDATE ====================
+        function updateKnockoutScore(roundIndex, matchIndex, player, value) {
+            const scoreValue = value.trim() === '' ? null : parseInt(value);
+
+            if (scoreValue !== null && (scoreValue < 0 || isNaN(scoreValue))) {
+                alert('Score moet een positief getal zijn.');
+                renderKnockout();
+                return;
+            }
+
+            const match = knockoutRounds[roundIndex].matches[matchIndex];
+
+            if (player === 1) {
+                match.score1 = scoreValue;
+            } else {
+                match.score2 = scoreValue;
+            }
+
+            // Determine winner if both scores are filled
+            if (match.score1 !== null && match.score2 !== null) {
+                if (match.score1 === match.score2) {
+                    alert('Gelijkspel is niet toegestaan in knock-out fase! De hoogste score wint.');
+                    return;
+                }
+
+                match.winnerId = match.score1 > match.score2 ? match.player1Id : match.player2Id;
+
+                // Advance winner to next round
+                advanceWinner(roundIndex, matchIndex, match.winnerId);
+            }
+
+            renderKnockout();
+            saveToLocalStorage();
+        }
+
+        function advanceWinner(roundIndex, matchIndex, winnerId) {
+            // Check if there's a next round
+            if (roundIndex + 1 < knockoutRounds.length) {
+                const nextRound = knockoutRounds[roundIndex + 1];
+                const nextMatchIndex = Math.floor(matchIndex / 2);
+                const isFirstPlayer = matchIndex % 2 === 0;
+
+                if (isFirstPlayer) {
+                    nextRound.matches[nextMatchIndex].player1Id = winnerId;
+                } else {
+                    nextRound.matches[nextMatchIndex].player2Id = winnerId;
+                }
+            }
         }
 
         // ==================== LOCAL STORAGE ====================
         function saveToLocalStorage() {
             const data = {
                 players,
-                matches,
+                pools,
+                knockoutRounds,
                 tournamentStarted,
+                knockoutStarted,
                 nextPlayerId
             };
             localStorage.setItem('tableTennisData', JSON.stringify(data));
@@ -775,8 +1122,10 @@
                 try {
                     const data = JSON.parse(stored);
                     players = data.players || [];
-                    matches = data.matches || [];
+                    pools = data.pools || [];
+                    knockoutRounds = data.knockoutRounds || [];
                     tournamentStarted = data.tournamentStarted || false;
+                    knockoutStarted = data.knockoutStarted || false;
                     nextPlayerId = data.nextPlayerId || 1;
                 } catch (e) {
                     console.error('Error loading data:', e);
@@ -790,15 +1139,17 @@
             }
 
             players = [];
-            matches = [];
+            pools = [];
+            knockoutRounds = [];
             tournamentStarted = false;
+            knockoutStarted = false;
             nextPlayerId = 1;
 
             localStorage.removeItem('tableTennisData');
 
             renderPlayers();
-            renderSchedule();
-            renderStandings();
+            renderPools();
+            renderKnockout();
             updateUI();
 
             showMessage(document.getElementById('playerMessage'), 'Toernooi gereset!', 'success');
@@ -808,20 +1159,25 @@
         function updateUI() {
             const generateBtn = document.getElementById('generateBtn');
             const playerNameInput = document.getElementById('playerNameInput');
+            const playersPerPoolInput = document.getElementById('playersPerPool');
 
             if (tournamentStarted) {
                 generateBtn.disabled = true;
                 generateBtn.textContent = 'Toernooi Actief';
                 playerNameInput.disabled = true;
+                playersPerPoolInput.disabled = true;
             } else {
                 generateBtn.disabled = false;
-                generateBtn.textContent = 'Genereer Speelschema';
+                generateBtn.textContent = 'Genereer Toernooi';
                 playerNameInput.disabled = false;
+                playersPerPoolInput.disabled = false;
             }
         }
 
         function showMessage(element, message, type) {
-            element.className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'success-msg';
+            element.className = type === 'error' ? 'error' :
+                               type === 'warning' ? 'warning' :
+                               type === 'info' ? 'info' : 'success-msg';
             element.textContent = message;
 
             setTimeout(() => {
@@ -836,7 +1192,7 @@
             return div.innerHTML;
         }
 
-        // Allow adding player with Enter key
+        // ==================== EVENT LISTENERS ====================
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('playerNameInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
