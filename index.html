@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tafeltennis Toernooi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h2::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            flex: 1;
+            min-width: 200px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.danger {
+            background: #dc3545;
+        }
+
+        button.danger:hover {
+            background: #c82333;
+        }
+
+        button.success {
+            background: #28a745;
+        }
+
+        button.success:hover {
+            background: #218838;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .player-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .player-item {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .player-item:hover {
+            transform: translateX(5px);
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .player-item button {
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #721c24;
+        }
+
+        .success-msg {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #155724;
+        }
+
+        .rounds {
+            margin-top: 20px;
+        }
+
+        .round {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .round h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .match {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            flex-wrap: wrap;
+        }
+
+        .match-players {
+            flex: 1;
+            min-width: 200px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .match-score {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .match-score input {
+            width: 70px;
+            text-align: center;
+        }
+
+        .vs {
+            font-weight: bold;
+            color: #667eea;
+            padding: 0 5px;
+        }
+
+        .standings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .standings-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .standings-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .standings-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .standings-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .rank-1 {
+            color: #ffd700;
+        }
+
+        .rank-2 {
+            color: #c0c0c0;
+        }
+
+        .rank-3 {
+            color: #cd7f32;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .bye-match {
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .section h2 {
+                font-size: 1.4em;
+            }
+
+            .match {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .match-players {
+                min-width: 100%;
+            }
+
+            .match-score {
+                justify-content: center;
+            }
+
+            .standings-table {
+                font-size: 0.9em;
+            }
+
+            .standings-table th,
+            .standings-table td {
+                padding: 8px;
+            }
+
+            .player-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .stats-highlight {
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏓 Tafeltennis Toernooi</h1>
+            <p>Organiseer je eigen round-robin toernooi</p>
+        </header>
+
+        <div class="content">
+            <!-- Spelersbeheer Section -->
+            <div class="section">
+                <h2>Spelers</h2>
+                <div id="playerManagement">
+                    <div class="input-group">
+                        <input type="text" id="playerNameInput" placeholder="Naam van speler..." />
+                        <button onclick="addPlayer()">Speler Toevoegen</button>
+                    </div>
+                    <div id="playerMessage"></div>
+                    <ul class="player-list" id="playerList"></ul>
+                    <div class="button-group" style="margin-top: 20px;">
+                        <button class="success" onclick="generateTournament()" id="generateBtn">
+                            Genereer Speelschema
+                        </button>
+                        <button class="danger" onclick="resetTournament()">
+                            Toernooi Resetten
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speelschema Section -->
+            <div class="section" id="scheduleSection">
+                <h2>Speelschema</h2>
+                <div id="scheduleMessage"></div>
+                <div id="roundsContainer" class="rounds"></div>
+            </div>
+
+            <!-- Ranglijst Section -->
+            <div class="section" id="standingsSection">
+                <h2>Ranglijst</h2>
+                <div id="standingsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== DATA MODEL ====================
+        let players = [];
+        let matches = [];
+        let tournamentStarted = false;
+        let nextPlayerId = 1;
+
+        // ==================== INITIALIZATION ====================
+        function init() {
+            loadFromLocalStorage();
+            renderPlayers();
+            renderSchedule();
+            renderStandings();
+            updateUI();
+        }
+
+        // ==================== PLAYER MANAGEMENT ====================
+        function addPlayer() {
+            const input = document.getElementById('playerNameInput');
+            const name = input.value.trim();
+            const messageDiv = document.getElementById('playerMessage');
+
+            if (!name) {
+                showMessage(messageDiv, 'Vul een naam in.', 'error');
+                return;
+            }
+
+            if (tournamentStarted) {
+                showMessage(messageDiv, 'Je kunt geen spelers toevoegen als het toernooi al gestart is.', 'error');
+                return;
+            }
+
+            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                showMessage(messageDiv, 'Deze naam bestaat al.', 'error');
+                return;
+            }
+
+            players.push({ id: nextPlayerId++, name: name });
+            input.value = '';
+            showMessage(messageDiv, `${name} toegevoegd!`, 'success');
+
+            renderPlayers();
+            saveToLocalStorage();
+        }
+
+        function removePlayer(id) {
+            if (tournamentStarted) {
+                alert('Je kunt geen spelers verwijderen als het toernooi al gestart is.');
+                return;
+            }
+
+            players = players.filter(p => p.id !== id);
+            renderPlayers();
+            saveToLocalStorage();
+        }
+
+        function renderPlayers() {
+            const list = document.getElementById('playerList');
+            list.innerHTML = '';
+
+            if (players.length === 0) {
+                list.innerHTML = '<li style="color: #999; text-align: center; padding: 20px;">Nog geen spelers toegevoegd</li>';
+                return;
+            }
+
+            players.forEach(player => {
+                const li = document.createElement('li');
+                li.className = 'player-item';
+                li.innerHTML = `
+                    <span class="player-name">${escapeHtml(player.name)}</span>
+                    ${!tournamentStarted ? `<button class="danger" onclick="removePlayer(${player.id})">Verwijder</button>` : ''}
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // ==================== TOURNAMENT GENERATION ====================
+        function generateTournament() {
+            const messageDiv = document.getElementById('scheduleMessage');
+
+            if (players.length < 2) {
+                showMessage(messageDiv, 'Je hebt minimaal 2 spelers nodig om te starten.', 'error');
+                return;
+            }
+
+            if (players.length > 32) {
+                if (!confirm(`Je hebt ${players.length} spelers. Dit betekent ${players.length * (players.length - 1) / 2} wedstrijden. Weet je het zeker?`)) {
+                    return;
+                }
+            }
+
+            matches = generateRoundRobinMatches(players);
+            tournamentStarted = true;
+
+            showMessage(messageDiv, 'Speelschema gegenereerd! Je kunt nu scores invoeren.', 'success');
+            renderSchedule();
+            renderStandings();
+            updateUI();
+            saveToLocalStorage();
+        }
+
+        function generateRoundRobinMatches(playerList) {
+            const matchList = [];
+            let participants = [...playerList];
+
+            // Add dummy player if odd number of players
+            const hasBye = participants.length % 2 !== 0;
+            if (hasBye) {
+                participants.push({ id: -1, name: 'BYE' });
+            }
+
+            const n = participants.length;
+            const rounds = n - 1;
+            const matchesPerRound = n / 2;
+
+            // Round-robin rotation algorithm
+            for (let round = 0; round < rounds; round++) {
+                for (let match = 0; match < matchesPerRound; match++) {
+                    let home = (round + match) % (n - 1);
+                    let away = (n - 1 - match + round) % (n - 1);
+
+                    // Last player stays in place
+                    if (match === 0) {
+                        away = n - 1;
+                    }
+
+                    const player1 = participants[home];
+                    const player2 = participants[away];
+
+                    // Skip matches with BYE player
+                    if (player1.id !== -1 && player2.id !== -1) {
+                        matchList.push({
+                            round: round + 1,
+                            player1Id: player1.id,
+                            player2Id: player2.id,
+                            score1: null,
+                            score2: null
+                        });
+                    }
+                }
+            }
+
+            return matchList;
+        }
+
+        // ==================== SCHEDULE RENDERING ====================
+        function renderSchedule() {
+            const container = document.getElementById('roundsContainer');
+
+            if (!tournamentStarted || matches.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Genereer eerst een speelschema</p>';
+                return;
+            }
+
+            const rounds = groupMatchesByRound(matches);
+            container.innerHTML = '';
+
+            rounds.forEach((roundMatches, roundNum) => {
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'round';
+
+                let roundHTML = `<h3>Ronde ${roundNum}</h3>`;
+
+                roundMatches.forEach((match, idx) => {
+                    const player1 = players.find(p => p.id === match.player1Id);
+                    const player2 = players.find(p => p.id === match.player2Id);
+
+                    const matchId = matches.indexOf(match);
+
+                    roundHTML += `
+                        <div class="match">
+                            <div class="match-players">
+                                ${escapeHtml(player1.name)} <span class="vs">vs</span> ${escapeHtml(player2.name)}
+                            </div>
+                            <div class="match-score">
+                                <input type="number"
+                                       min="0"
+                                       value="${match.score1 !== null ? match.score1 : ''}"
+                                       placeholder="0"
+                                       onchange="updateScore(${matchId}, 1, this.value)" />
+                                <span>-</span>
+                                <input type="number"
+                                       min="0"
+                                       value="${match.score2 !== null ? match.score2 : ''}"
+                                       placeholder="0"
+                                       onchange="updateScore(${matchId}, 2, this.value)" />
+                            </div>
+                        </div>
+                    `;
+                });
+
+                roundDiv.innerHTML = roundHTML;
+                container.appendChild(roundDiv);
+            });
+        }
+
+        function groupMatchesByRound(matchList) {
+            const rounds = new Map();
+
+            matchList.forEach(match => {
+                if (!rounds.has(match.round)) {
+                    rounds.set(match.round, []);
+                }
+                rounds.get(match.round).push(match);
+            });
+
+            return rounds;
+        }
+
+        // ==================== SCORE MANAGEMENT ====================
+        function updateScore(matchIndex, player, value) {
+            const scoreValue = value.trim() === '' ? null : parseInt(value);
+
+            if (scoreValue !== null && (scoreValue < 0 || isNaN(scoreValue))) {
+                alert('Score moet een positief getal zijn.');
+                renderSchedule();
+                return;
+            }
+
+            if (player === 1) {
+                matches[matchIndex].score1 = scoreValue;
+            } else {
+                matches[matchIndex].score2 = scoreValue;
+            }
+
+            renderStandings();
+            saveToLocalStorage();
+        }
+
+        // ==================== STANDINGS CALCULATION ====================
+        function calculateStandings() {
+            const standings = players.map(player => ({
+                id: player.id,
+                name: player.name,
+                played: 0,
+                won: 0,
+                lost: 0,
+                drawn: 0,
+                pointsFor: 0,
+                pointsAgainst: 0,
+                pointsDiff: 0
+            }));
+
+            matches.forEach(match => {
+                // Only count matches with complete scores
+                if (match.score1 !== null && match.score2 !== null) {
+                    const player1Stats = standings.find(s => s.id === match.player1Id);
+                    const player2Stats = standings.find(s => s.id === match.player2Id);
+
+                    player1Stats.played++;
+                    player2Stats.played++;
+
+                    player1Stats.pointsFor += match.score1;
+                    player1Stats.pointsAgainst += match.score2;
+
+                    player2Stats.pointsFor += match.score2;
+                    player2Stats.pointsAgainst += match.score1;
+
+                    if (match.score1 > match.score2) {
+                        player1Stats.won++;
+                        player2Stats.lost++;
+                    } else if (match.score2 > match.score1) {
+                        player2Stats.won++;
+                        player1Stats.lost++;
+                    } else {
+                        player1Stats.drawn++;
+                        player2Stats.drawn++;
+                    }
+                }
+            });
+
+            // Calculate point difference
+            standings.forEach(s => {
+                s.pointsDiff = s.pointsFor - s.pointsAgainst;
+            });
+
+            // Sort: won (desc), pointsDiff (desc), name (asc)
+            standings.sort((a, b) => {
+                if (b.won !== a.won) return b.won - a.won;
+                if (b.pointsDiff !== a.pointsDiff) return b.pointsDiff - a.pointsDiff;
+                return a.name.localeCompare(b.name);
+            });
+
+            return standings;
+        }
+
+        function renderStandings() {
+            const container = document.getElementById('standingsContainer');
+
+            if (!tournamentStarted || matches.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Ranglijst wordt zichtbaar na het genereren van het speelschema</p>';
+                return;
+            }
+
+            const standings = calculateStandings();
+
+            let html = `
+                <table class="standings-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Naam</th>
+                            <th>Gespeeld</th>
+                            <th>Gewonnen</th>
+                            <th>Verloren</th>
+                            <th>Gelijk</th>
+                            <th>Voor</th>
+                            <th>Tegen</th>
+                            <th>Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            standings.forEach((player, index) => {
+                const rank = index + 1;
+                let rankClass = 'rank';
+                if (rank === 1) rankClass += ' rank-1';
+                else if (rank === 2) rankClass += ' rank-2';
+                else if (rank === 3) rankClass += ' rank-3';
+
+                html += `
+                    <tr>
+                        <td class="${rankClass}">${rank}</td>
+                        <td><strong>${escapeHtml(player.name)}</strong></td>
+                        <td>${player.played}</td>
+                        <td class="stats-highlight">${player.won}</td>
+                        <td>${player.lost}</td>
+                        <td>${player.drawn}</td>
+                        <td>${player.pointsFor}</td>
+                        <td>${player.pointsAgainst}</td>
+                        <td class="stats-highlight">${player.pointsDiff >= 0 ? '+' : ''}${player.pointsDiff}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // ==================== LOCAL STORAGE ====================
+        function saveToLocalStorage() {
+            const data = {
+                players,
+                matches,
+                tournamentStarted,
+                nextPlayerId
+            };
+            localStorage.setItem('tableTennisData', JSON.stringify(data));
+        }
+
+        function loadFromLocalStorage() {
+            const stored = localStorage.getItem('tableTennisData');
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    players = data.players || [];
+                    matches = data.matches || [];
+                    tournamentStarted = data.tournamentStarted || false;
+                    nextPlayerId = data.nextPlayerId || 1;
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                }
+            }
+        }
+
+        function resetTournament() {
+            if (!confirm('Weet je zeker dat je het hele toernooi wilt resetten? Dit kan niet ongedaan gemaakt worden.')) {
+                return;
+            }
+
+            players = [];
+            matches = [];
+            tournamentStarted = false;
+            nextPlayerId = 1;
+
+            localStorage.removeItem('tableTennisData');
+
+            renderPlayers();
+            renderSchedule();
+            renderStandings();
+            updateUI();
+
+            showMessage(document.getElementById('playerMessage'), 'Toernooi gereset!', 'success');
+        }
+
+        // ==================== UI HELPERS ====================
+        function updateUI() {
+            const generateBtn = document.getElementById('generateBtn');
+            const playerNameInput = document.getElementById('playerNameInput');
+
+            if (tournamentStarted) {
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Toernooi Actief';
+                playerNameInput.disabled = true;
+            } else {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Genereer Speelschema';
+                playerNameInput.disabled = false;
+            }
+        }
+
+        function showMessage(element, message, type) {
+            element.className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'success-msg';
+            element.textContent = message;
+
+            setTimeout(() => {
+                element.textContent = '';
+                element.className = '';
+            }, 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Allow adding player with Enter key
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('playerNameInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addPlayer();
+                }
+            });
+            init();
+        });
+    </script>
+</body>
+</html>
