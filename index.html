@@ -957,17 +957,41 @@
 
             // Smart pairing: A1 vs B2, B1 vs A2, C1 vs D2, D1 vs C2, etc.
             const firstRound = knockoutRounds[0];
-            const winners = qualifiers.filter(q => q.rank === 1);
-            const runnersUp = qualifiers.filter(q => q.rank === 2);
 
-            for (let i = 0; i < firstRound.matches.length; i++) {
-                // Pair winner from pool i with runner-up from next pool
-                const winner = winners[i % winners.length];
-                const runnerUp = runnersUp[(i + 1) % runnersUp.length];
+            // Separate winners and runners-up by pool
+            const pooledQualifiers = [];
+            pools.forEach(pool => {
+                const poolWinner = qualifiers.find(q => q.poolId === pool.id && q.rank === 1);
+                const poolRunner = qualifiers.find(q => q.poolId === pool.id && q.rank === 2);
+                if (poolWinner && poolRunner) {
+                    pooledQualifiers.push({ winner: poolWinner, runner: poolRunner });
+                }
+            });
 
-                if (winner && runnerUp) {
-                    firstRound.matches[i].player1Id = winner.playerId;
-                    firstRound.matches[i].player2Id = runnerUp.playerId;
+            // Create pairings: A1 vs B2, B1 vs A2, C1 vs D2, D1 vs C2, etc.
+            let matchIdx = 0;
+            for (let i = 0; i < pooledQualifiers.length; i += 2) {
+                if (i + 1 < pooledQualifiers.length) {
+                    // Pair pool i winner vs pool i+1 runner
+                    if (matchIdx < firstRound.matches.length) {
+                        firstRound.matches[matchIdx].player1Id = pooledQualifiers[i].winner.playerId;
+                        firstRound.matches[matchIdx].player2Id = pooledQualifiers[i + 1].runner.playerId;
+                        matchIdx++;
+                    }
+
+                    // Pair pool i+1 winner vs pool i runner
+                    if (matchIdx < firstRound.matches.length) {
+                        firstRound.matches[matchIdx].player1Id = pooledQualifiers[i + 1].winner.playerId;
+                        firstRound.matches[matchIdx].player2Id = pooledQualifiers[i].runner.playerId;
+                        matchIdx++;
+                    }
+                } else {
+                    // Odd number of pools - pair remaining with first
+                    if (matchIdx < firstRound.matches.length && pooledQualifiers.length > 0) {
+                        firstRound.matches[matchIdx].player1Id = pooledQualifiers[i].winner.playerId;
+                        firstRound.matches[matchIdx].player2Id = pooledQualifiers[0].runner.playerId;
+                        matchIdx++;
+                    }
                 }
             }
 
@@ -1074,7 +1098,15 @@
             // Determine winner if both scores are filled
             if (match.score1 !== null && match.score2 !== null) {
                 if (match.score1 === match.score2) {
-                    alert('Gelijkspel is niet toegestaan in knock-out fase! De hoogste score wint.');
+                    alert('Gelijkspel is niet toegestaan in knock-out fase! Vul een andere score in.');
+                    // Reset the score that was just entered
+                    if (player === 1) {
+                        match.score1 = null;
+                    } else {
+                        match.score2 = null;
+                    }
+                    renderKnockout();
+                    saveToLocalStorage();
                     return;
                 }
 
@@ -1082,6 +1114,29 @@
 
                 // Advance winner to next round
                 advanceWinner(roundIndex, matchIndex, match.winnerId);
+            } else {
+                // If one score is cleared, reset winner and clear from subsequent rounds
+                const previousWinnerId = match.winnerId;
+                match.winnerId = null;
+
+                // Clear this match's winner from next round if it was previously set
+                if (previousWinnerId && roundIndex + 1 < knockoutRounds.length) {
+                    const nextRound = knockoutRounds[roundIndex + 1];
+                    const nextMatchIndex = Math.floor(matchIndex / 2);
+                    const isFirstPlayer = matchIndex % 2 === 0;
+
+                    if (isFirstPlayer) {
+                        nextRound.matches[nextMatchIndex].player1Id = null;
+                    } else {
+                        nextRound.matches[nextMatchIndex].player2Id = null;
+                    }
+
+                    // Clear scores and continue clearing subsequent rounds
+                    nextRound.matches[nextMatchIndex].score1 = null;
+                    nextRound.matches[nextMatchIndex].score2 = null;
+                    nextRound.matches[nextMatchIndex].winnerId = null;
+                    clearSubsequentRounds(roundIndex + 1, nextMatchIndex);
+                }
             }
 
             renderKnockout();
@@ -1100,6 +1155,42 @@
                 } else {
                     nextRound.matches[nextMatchIndex].player2Id = winnerId;
                 }
+
+                // Clear winner and scores from next round match if no longer both players are set
+                const nextMatch = nextRound.matches[nextMatchIndex];
+                if (!nextMatch.player1Id || !nextMatch.player2Id) {
+                    nextMatch.score1 = null;
+                    nextMatch.score2 = null;
+                    nextMatch.winnerId = null;
+                    // Recursively clear subsequent rounds
+                    clearSubsequentRounds(roundIndex + 1, nextMatchIndex);
+                }
+            }
+        }
+
+        function clearSubsequentRounds(roundIndex, matchIndex) {
+            // Clear all subsequent rounds affected by this match
+            if (roundIndex + 1 < knockoutRounds.length) {
+                const nextRound = knockoutRounds[roundIndex + 1];
+                const nextMatchIndex = Math.floor(matchIndex / 2);
+                const isFirstPlayer = matchIndex % 2 === 0;
+
+                const nextMatch = nextRound.matches[nextMatchIndex];
+
+                // Clear the player slot
+                if (isFirstPlayer) {
+                    nextMatch.player1Id = null;
+                } else {
+                    nextMatch.player2Id = null;
+                }
+
+                // Clear scores and winner
+                nextMatch.score1 = null;
+                nextMatch.score2 = null;
+                nextMatch.winnerId = null;
+
+                // Continue recursively
+                clearSubsequentRounds(roundIndex + 1, nextMatchIndex);
             }
         }
 
