@@ -892,7 +892,7 @@
             const rounds = [];
             let currentRound = numQualifiers;
 
-            // Build rounds from bottom up
+            // Build rounds in correct order: Kwartfinale -> Halve Finale -> Finale
             const roundNames = {
                 2: 'Finale',
                 4: 'Halve Finale',
@@ -904,7 +904,7 @@
                 const roundName = roundNames[currentRound] || `Ronde van ${currentRound}`;
                 const numMatches = currentRound / 2;
 
-                rounds.unshift({
+                rounds.push({
                     name: roundName,
                     matches: Array(numMatches).fill(null).map(() => ({
                         player1Id: null,
